@@ -1,0 +1,27 @@
+package com.example.f4f;
+
+public class DataStore {
+
+	public String selected = null;
+	public DataStore(){
+		
+	}
+
+	private static DataStore instance = null;
+
+	public static DataStore getInstance() {
+		 if(instance == null) {
+	         instance = new DataStore();
+	      }
+	      return instance;
+	}
+	
+	public String getSelected() {
+		return selected;
+	}
+
+	public void setSelected(String selected) {
+		this.selected = selected;
+	}
+
+}

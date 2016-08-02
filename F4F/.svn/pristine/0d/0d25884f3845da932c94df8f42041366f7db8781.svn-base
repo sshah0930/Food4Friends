@@ -1,0 +1,52 @@
+package com.example.f4f;
+
+import android.app.Activity;
+import android.content.Intent;
+import android.os.Bundle;
+import android.view.View;
+import android.widget.Button;
+
+public class Cuisines extends Activity{
+	
+	Button mexican;
+	Button italian;
+	Button american;
+	Button chinese;
+	Button asian;
+	Button french;
+	Button indian;
+	Button thai;
+	Button mediterranean;
+
+	
+	public DataStore data = DataStore.getInstance();
+	@Override
+	protected void onCreate(Bundle savedInstanceState) {
+		super.onCreate(savedInstanceState);
+		setContentView(R.layout.cuisinesscreen);
+		
+		mexican = (Button)findViewById(R.id.button1);
+		italian = (Button)findViewById(R.id.button2);
+		american = (Button)findViewById(R.id.button3);
+		chinese = (Button)findViewById(R.id.button4);
+		asian = (Button)findViewById(R.id.button5);
+		french = (Button)findViewById(R.id.button6);
+		indian = (Button)findViewById(R.id.button7);
+		thai = (Button)findViewById(R.id.button8);
+		mediterranean = (Button)findViewById(R.id.button9);
+	}
+	
+	public void getCuisineRecipes(View v){
+		
+		String clickedcuisineText = (String) ((Button) v).getText();
+		String cuisinetext = clickedcuisineText.toLowerCase();
+		
+		data.setSelected(cuisinetext);
+		
+		Intent myIntent = new Intent(Cuisines.this, MainActivity.class);
+		startActivity(myIntent);
+	}
+	
+	
+	
+}

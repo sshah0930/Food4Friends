@@ -1,0 +1,150 @@
+package com.example.f4f;
+
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.util.ArrayList;
+
+import org.apache.http.HttpEntity;
+import org.apache.http.HttpResponse;
+import org.apache.http.client.ClientProtocolException;
+import org.apache.http.client.HttpClient;
+import org.apache.http.client.methods.HttpGet;
+import org.apache.http.impl.client.DefaultHttpClient;
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
+
+
+
+
+
+import android.app.Activity;
+import android.content.Context;
+import android.content.SharedPreferences;
+import android.os.AsyncTask;
+import android.os.Bundle;
+import android.view.LayoutInflater;
+import android.view.View;
+import android.webkit.WebChromeClient.CustomViewCallback;
+import android.widget.ListView;
+import android.widget.ProgressBar;
+
+
+
+public class MainActivity extends Activity{
+	private LayoutInflater layoutInflator;
+	private Context context;
+	private ArrayList<Recipes> recipes;
+	private String URL;
+
+	public DataStore data = DataStore.getInstance();
+
+
+
+	@Override
+	protected void onCreate(Bundle savedInstanceState) {
+		super.onCreate(savedInstanceState);
+		setContentView(R.layout.activity_main);
+		String cuisinename = data.getSelected();
+		if(cuisinename!=null && cuisinename !=""){
+			URL = "http://api.yummly.com/v1/api/recipes?_app_id=2ba071bd&_app_key=2f7647c2f0855c80256b2a31bfca4a8c&q="+cuisinename;
+			this.layoutInflator = LayoutInflater.from(this);
+			MyAsyncTask task = new MyAsyncTask(MainActivity.this);
+			task.execute();
+		}
+	}
+
+	public void setRecipes(ArrayList<Recipes> data){
+		recipes = data;
+		ListView myList = (ListView) findViewById(R.id.listview1);
+		ProgressBar progress = (ProgressBar) findViewById(R.id.progress);
+		progress.setVisibility(View.GONE);
+		RecipesAdapter adapter = new RecipesAdapter(this, this.layoutInflator, this.recipes);
+		myList.setAdapter(adapter);
+
+	}
+
+	public class MyAsyncTask extends AsyncTask<String, Integer, String>{
+
+
+		private MainActivity myactivity;
+		private Context context;
+
+
+
+		private byte[] buff = new byte[1024];
+
+		public MyAsyncTask(MainActivity myactivity){
+			super();
+			this.myactivity = myactivity;
+			this.context = this.myactivity.getApplicationContext();
+		}
+
+		@Override
+		protected String doInBackground(String... params) {
+			String result = null;
+			try {
+				result = getRecipes();
+			} catch (ClientProtocolException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			} catch (IOException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+
+			return result;
+		}
+
+		private String getRecipes() throws ClientProtocolException, IOException {
+			HttpClient client = new DefaultHttpClient();
+			HttpGet request = new HttpGet(URL);
+
+			HttpResponse response = client.execute(request);
+			HttpEntity entity = response.getEntity();
+			InputStream ist = entity.getContent();
+			ByteArrayOutputStream content = new ByteArrayOutputStream();
+
+			int readCount = 0;
+
+			while((readCount = ist.read(buff))!=-1){
+				content.write(buff, 0, readCount);
+			}
+			String data;
+			data = new String(content.toByteArray());
+
+			return data;
+
+		}
+
+		@Override
+		protected void onPostExecute(String result) {
+			super.onPostExecute(result);
+			ArrayList<Recipes> data = new ArrayList<Recipes>();
+
+			try {
+				JSONObject resObj = new JSONObject(result);
+				JSONArray foundrecipes = resObj.getJSONArray("matches");
+				for(int i = 0;i<foundrecipes.length(); i++){
+					JSONObject recipe = foundrecipes.getJSONObject(i);
+					String recipeName = recipe.getString("recipeName");
+					String rating = recipe.getString("rating");
+					String id = recipe.getString("id");
+
+					data.add(new Recipes(recipeName, rating, id));
+				}
+
+			} catch (JSONException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+
+			this.myactivity.setRecipes(data);
+
+		}
+
+	}
+
+
+}
